@@ -1,0 +1,33 @@
+name: Build and Push Backend Image
+
+# ఎప్పుడు run అవ్వాలి
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:        # GitHub UI నుంచి చేతితో run చెయ్యడానికి
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest  # GitHub ఇచ్చే తాత్కాలిక Linux machine
+
+    steps:
+      # 1. మీ code ని ఆ machine లోకి download చెయ్యి
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Docker Hub కి login అవ్వు (secrets వాడి)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Image build చేసి push చెయ్యి
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/task-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/task-backend:${{ github.sha }}
